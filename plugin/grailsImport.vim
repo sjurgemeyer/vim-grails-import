@@ -207,7 +207,11 @@ let s:loaded_data = []
 function! LoadImports()
     if filereadable(g:grails_import_list_file)
       for line in readfile(g:grails_import_list_file)
-        :call add(s:loaded_data, line) 
+        if len(line) > 0
+          if line[0] != '"'
+              :call add(s:loaded_data, line) 
+          endif
+        endif
       endfor
     endif
     if !len(s:loaded_data)
