@@ -1,3 +1,30 @@
+"Configuration options
+if !exists('g:grails_import_map_keys')
+    let g:grails_import_map_keys = 1
+endif
+
+if !exists('g:grails_import_insert_shortcut')
+    let g:grails_import_insert_shortcut='<leader>i'
+endif
+
+if !exists('g:grails_import_list_file')
+    let s:current_file=expand("<sfile>:h")
+    let g:grails_import_list_file = s:current_file . '/grailsImportList.txt'
+endif
+
+if !exists('g:grails_import_seperators')
+    let g:grails_import_seperators = ['domain', 'services', 'groovy', 'taglib', 'controllers', 'integration', 'unit']
+endif
+
+if !exists('g:grails_import_auto_organize') 
+    let g:grails_import_auto_organize = 1
+endif
+
+if !exists('g:grails_import_auto_remove')
+    let g:grails_import_auto_remove = 1
+endif
+
+"Functions
 function! InsertImport()
     :let original_pos = getpos('.')
     let classToFind = expand("<cword>")
@@ -11,12 +38,12 @@ function! InsertImport()
     
     let pathList = []
     let currentpackage = GetCurrentPackage()
+
     "Looking up class in text file
     if filePathList == []
        for line in s:loaded_data
            let tempClassList = split(line, '\.')
            if len(tempClassList) && tempClassList[-1] == classToFind
-               " :call add(tempClassList, 'groovy') " Little bit of a hack to make the paths the same length
                :call add(pathList, line)
            endif
        endfor
@@ -57,8 +84,12 @@ function! InsertImport()
             :execute "normal I" . import . "\<Esc>"
             :execute "normal " . (pos[1] + 1) . "G"
         endfor
-        :call RemoveUnneededImports()
-        :call OrganizeImports() 
+        if (g:grails_import_auto_remove)
+            :call RemoveUnneededImports()
+        endif
+        if (g:grails_import_auto_organize)
+            :call OrganizeImports() 
+        endif
         if len(pathList) > 1
             echom "Warning: Multiple imports created!"
         endif
@@ -76,11 +107,10 @@ function! RemoveFileFromPackage(fullpath)
 endfunction
 
 function! ConvertPathToPackage(filePath)
-    let seperators = ['domain', 'services', 'groovy', 'taglib', 'controllers', 'integration', 'unit']
 
     let f = a:filePath
     let idx = len(f)
-    for sep in seperators
+    for sep in g:grails_import_seperators
         let tempIdx = index(f, sep) 
         if tempIdx > 0
             if tempIdx < idx
@@ -132,7 +162,6 @@ function! OrganizeImports()
     endfor
     call setpos('.', pos)
 endfunction
-
 command! OrganizeImports :call OrganizeImports()
 
 function! CountOccurances(searchstring)
@@ -173,17 +202,22 @@ function! RemoveUnneededImports()
     endfor
 endfunction
 
-let s:data_file = $HOME . '/.vim/plugin/grailsImportsList.txt'
+"Loading of imports from a file
 let s:loaded_data = []
 function! LoadImports()
-    if filereadable(s:data_file)
-      for line in readfile(s:data_file)
+    if filereadable(g:grails_import_list_file)
+      for line in readfile(g:grails_import_list_file)
         :call add(s:loaded_data, line) 
       endfor
     endif
     if !len(s:loaded_data)
-      echo 'Error: Could not read highlight data from '.s:data_file
+      echo 'vim-grails-import Error: Could not read import data from '.g:grails_import_list_file
     endif
 endfunction
 command! LoadImports :call LoadImports()
 :call LoadImports()
+
+"Key mappings
+if g:grails_import_map_keys
+    execute "nnoremap"  g:grails_import_insert_shortcut ":call InsertImport()<CR>"
+endif
