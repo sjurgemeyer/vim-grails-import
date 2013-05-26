@@ -1,8 +1,8 @@
 This is a plugin for vim that allows you to easily add imports within a groovy, grails or java project.
 
-# INSTALLATION #
+## INSTALLATION ##
 
-## Vundle (http://github.com/gmarik/vundle) ##
+### Vundle (http://github.com/gmarik/vundle) ###
 
 Include the following line in your .vimrc
 
@@ -13,7 +13,7 @@ Then, run
     :BundleInstall
 
 
-## Pathogen (https://github.com/tpope/vim-pathogen) ##
+### Pathogen (https://github.com/tpope/vim-pathogen) ###
 
 Clone the plugin's git repository
 
