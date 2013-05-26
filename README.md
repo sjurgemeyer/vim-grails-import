@@ -1,6 +1,6 @@
 This is a plugin for vim that allows you to easily add imports within a groovy, grails or java project.
 
-## INSTALLATION ##
+## Installation ##
 
 ### Vundle (http://github.com/gmarik/vundle) ###
 
@@ -28,4 +28,5 @@ The command is (provided you're in ~/.vim):
 You can also just copy the files the old fashioned way, but I don't condone that type of behavior
 
 
+## Usage ##
 Please see readme.txt for additional details on usage and configuration.
