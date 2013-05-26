@@ -29,4 +29,4 @@ You can also just copy the files the old fashioned way, but I don't condone that
 
 
 ## Usage ##
-Please see readme.txt for additional details on usage and configuration.
+Please see /doc/grailsImport.txt for additional details on usage and configuration.
