@@ -13,7 +13,7 @@ if !exists('g:grails_import_list_file')
 endif
 
 if !exists('g:grails_import_seperators')
-    let g:grails_import_seperators = ['domain', 'services', 'groovy', 'taglib', 'controllers', 'integration', 'unit']
+    let g:grails_import_seperators = ['domain', 'services', 'groovy', 'java', 'taglib', 'controllers', 'integration', 'unit']
 endif
 
 if !exists('g:grails_import_auto_organize') 
@@ -24,16 +24,29 @@ if !exists('g:grails_import_auto_remove')
     let g:grails_import_auto_remove = 1
 endif
 
+if !exists('g:grails_import_file_extensions')
+    let g:grails_import_file_extensions = ['groovy', 'java']
+endif
+
+if !exists('g:grails_import_search_path')
+    let g:grails_import_search_path = '.'
+endif
+
 "Functions
 function! InsertImport()
     :let original_pos = getpos('.')
     let classToFind = expand("<cword>")
-    let paths = globpath('.', '**/' . classToFind . '.groovy')
-    let multiplePaths = split(paths, '\n')
+
     let filePathList = []
-    for p in multiplePaths
-        :call add(filePathList, split(p, '/'))
+    for extension in g:grails_import_file_extensions
+        let searchString = '**/' . classToFind . '.' . extension
+        let paths = globpath(g:grails_import_search_path, searchString)
+        let multiplePaths = split(paths, '\n')
+        for p in multiplePaths
+            :call add(filePathList, split(p, '/'))
+        endfor
     endfor
+
     let idx = 0
     
     let pathList = []
@@ -78,10 +91,16 @@ function! InsertImport()
         echoerr "no file found"
     else
         for pa in pathList
-            let import = 'import ' . pa
             :let pos = getpos('.')
+            let import = 'import ' . pa
+            let extension = expand("%:e")
+            if (extension == 'java')
+               let formattedImport = import . ';' 
+            else
+               let formattedImport = import
+            endif
             :execute "normal ggo"
-            :execute "normal I" . import . "\<Esc>"
+            :execute "normal I" . formattedImport . "\<Esc>"
             :execute "normal " . (pos[1] + 1) . "G"
         endfor
         if (g:grails_import_auto_remove)
@@ -189,7 +208,7 @@ function! RemoveUnneededImports()
     for line in lines
         let trimmedLine = substitute(line, '^\s*\(.\{-}\)\s*$', '\1', '')  
         if len(trimmedLine) > 0
-            let classname = split(line, '\.')[-1]
+            let classname = substitute(split(line, '\.')[-1], ';', '', '')
             " echoerr classname . " " . CountOccurances(classname)
             if classname == "*" || CountOccurances(classname) > 0
                 :call add(updatedLines, substitute(line, '^\(\s\*\)','',''))
