@@ -37,60 +37,51 @@ function! InsertImport()
     :let original_pos = getpos('.')
     let classToFind = expand("<cword>")
 
-    let filePathList = []
-    for extension in g:grails_import_file_extensions
-        let searchString = '**/' . classToFind . '.' . extension
-        let paths = globpath(g:grails_import_search_path, searchString)
-        let multiplePaths = split(paths, '\n')
-        for p in multiplePaths
-            :call add(filePathList, split(p, '/'))
-        endfor
-    endfor
-
-    let idx = 0
+    let filePathList = GetFilePathListFromFiles(classToFind)
     
-    let pathList = []
-    let currentpackage = GetCurrentPackage()
-
     "Looking up class in text file
     if filePathList == []
        for line in s:loaded_data
            let tempClassList = split(line, '\.')
            if len(tempClassList) && tempClassList[-1] == classToFind
-               :call add(pathList, line)
+                :call add(filePathList, line)
            endif
        endfor
-    "Found file in current path, so determine package by path
-    else 
-        for f in filePathList
-            let trimmedPath = ConvertPathToPackage(f)
-            let importPackage = RemoveFileFromPackage(trimmedPath)
-            if importPackage != '' 
-                if  importPackage != currentpackage
-                    :let starredImport = search(importPackage . "\\.\\*", 'nw')
-                    if starredImport > 0
-                        echom importPackage . '.* exists'
-                        return
-                    else
-                        :let existingImport = search(trimmedPath, 'nw')
-                        if existingImport > 0
-                            echom 'import already exists'
-                            return
-                        else
-                            :call add(pathList, trimmedPath)
-                        endif
-                    endif
-                else 
-                    echom "File is in the same package"
-                    return
-                endif
-            endif
-        endfor
     endif
-    if pathList == []
+
+    let pathList = []
+    for f in filePathList
+        let shouldCreateImport = ShouldCreateImport(f)
+        if (shouldCreateImport)
+            :call add(pathList, f)
+        else 
+            return
+        endif
+    endfor
+    let x = CreateImports(pathList)
+
+    call setpos('.', original_pos)
+endfunction
+
+function! GetFilePathListFromFiles(classToFind)
+    let filePathList = []
+    for extension in g:grails_import_file_extensions
+        let searchString = '**/' . a:classToFind . '.' . extension
+        let paths = globpath(g:grails_import_search_path, searchString)
+        let multiplePaths = split(paths, '\n')
+        for p in multiplePaths
+            let trimmedPath = ConvertPathToPackage(p)
+            :call add(filePathList, trimmedPath)
+        endfor
+    endfor
+    return filePathList
+endfunction 
+
+function! CreateImports(pathList)
+    if a:pathList == []
         echoerr "no file found"
     else
-        for pa in pathList
+        for pa in a:pathList
             :let pos = getpos('.')
             let import = 'import ' . pa
             let extension = expand("%:e")
@@ -109,16 +100,39 @@ function! InsertImport()
         if (g:grails_import_auto_organize)
             :call OrganizeImports() 
         endif
-        if len(pathList) > 1
+        if len(a:pathList) > 1
             echom "Warning: Multiple imports created!"
         endif
     endif
+endfunction
 
-    call setpos('.', original_pos)
+function! ShouldCreateImport(path)
+    let currentpackage = GetCurrentPackage()
+    let importPackage = RemoveFileFromPackage(a:path)
+    if importPackage != '' 
+        if importPackage != currentpackage
+            :let starredImport = search(importPackage . "\\.\\*", 'nw')
+            if starredImport > 0
+                echom importPackage . '.* exists'
+                return 0
+            else
+                :let existingImport = search(a:path, 'nw')
+                if existingImport > 0
+                    echom 'import already exists'
+                    return 0
+                else
+                endif
+            endif
+        else 
+            echom "File is in the same package"
+            return 0
+        endif
+    endif
+    return 1
 endfunction
 
 function! GetCurrentPackage()
-    return ConvertPathToPackage(split(expand("%:r"),'/'))
+    return ConvertPathToPackage(expand("%:r"))
 endfunction
 
 function! RemoveFileFromPackage(fullpath)
@@ -126,20 +140,26 @@ function! RemoveFileFromPackage(fullpath)
 endfunction
 
 function! ConvertPathToPackage(filePath)
+    let splitPath = split(a:filePath, '/')
 
-    let f = a:filePath
-    let idx = len(f)
+    let idx = len(splitPath)
     for sep in g:grails_import_seperators
-        let tempIdx = index(f, sep) 
+        let tempIdx = index(splitPath, sep) 
         if tempIdx > 0
             if tempIdx < idx
                 let idx = tempIdx + 1
             endif
         endif
     endfor
-    let trimmedPath = f[idx :-1]
+    let trimmedPath = splitPath[idx :-1]
 
     return join(split(join(trimmedPath, '.'),'\.')[0:-2], '.')
+endfunction
+
+function! GetPackageFromFile(filePath)
+    let packageDeclaration = readfile(a:filePath, 0, 1)[0:0]
+    let package = split(packageDeclaration, '\s')[-1]
+
 endfunction
 
 command! InsertImport :call InsertImport() 
