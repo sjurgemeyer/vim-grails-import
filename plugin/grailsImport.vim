@@ -67,11 +67,11 @@ function! GetFilePathListFromFiles(classToFind)
     let filePathList = []
     for extension in g:grails_import_file_extensions
         let searchString = '**/' . a:classToFind . '.' . extension
-        let paths = globpath(g:grails_import_search_path, searchString)
+        let paths = globpath(g:grails_import_search_path, searchString, 1)
         let multiplePaths = split(paths, '\n')
         for p in multiplePaths
-            let trimmedPath = ConvertPathToPackage(p)
-            :call add(filePathList, trimmedPath)
+            let package = GetPackageFromFile(p)
+            :call add(filePathList, package . '.' . a:classToFind)
         endfor
     endfor
     return filePathList
@@ -132,7 +132,7 @@ function! ShouldCreateImport(path)
 endfunction
 
 function! GetCurrentPackage()
-    return ConvertPathToPackage(expand("%:r"))
+    return GetPackageFromFile(expand("%:p"))
 endfunction
 
 function! RemoveFileFromPackage(fullpath)
@@ -157,8 +157,9 @@ function! ConvertPathToPackage(filePath)
 endfunction
 
 function! GetPackageFromFile(filePath)
-    let packageDeclaration = readfile(a:filePath, 0, 1)[0:0]
+    let packageDeclaration = readfile(a:filePath, 0, 1)[0]
     let package = split(packageDeclaration, '\s')[-1]
+    return package
 
 endfunction
 
@@ -264,3 +265,4 @@ command! LoadImports :call LoadImports()
 if g:grails_import_map_keys
     execute "nnoremap"  g:grails_import_insert_shortcut ":call InsertImport()<CR>"
 endif
+
