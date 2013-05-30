@@ -159,6 +159,7 @@ endfunction
 function! GetPackageFromFile(filePath)
     let packageDeclaration = readfile(a:filePath, 0, 1)[0]
     let package = split(packageDeclaration, '\s')[-1]
+    let package = substitute(package, ';', '', '')
     return package
 
 endfunction
