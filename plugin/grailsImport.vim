@@ -135,6 +135,10 @@ function! GetCurrentPackage()
     return GetPackageFromFile(expand("%:p"))
 endfunction
 
+function! GetCurrentPackageFromPath()
+    return ConvertPathToPackage(expand("%:r"))
+endfunction
+
 function! RemoveFileFromPackage(fullpath)
     return join(split(a:fullpath,'\.')[0:-2],'.')
 endfunction
