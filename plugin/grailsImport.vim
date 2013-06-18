@@ -116,7 +116,7 @@ function! ShouldCreateImport(path)
                 echom importPackage . '.* exists'
                 return 0
             else
-                :let existingImport = search(a:path, 'nw')
+                :let existingImport = search(a:path . '\s*$', 'nw')
                 if existingImport > 0
                     echom 'import already exists'
                     return 0
