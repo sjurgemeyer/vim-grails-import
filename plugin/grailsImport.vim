@@ -234,7 +234,10 @@ function! RemoveUnneededImports()
     for line in lines
         let trimmedLine = substitute(line, '^\s*\(.\{-}\)\s*$', '\1', '')  
         if len(trimmedLine) > 0
-            let classname = substitute(split(line, '\.')[-1], ';', '', '')
+            " Also split on spaces for things like 
+            " import com.MyClass as MyAwesomeClass
+            let tempString = substitute(line, '\s', '\.', 'g')
+            let classname = substitute(split(tempString, '\.')[-1], ';', '', '')
             " echoerr classname . " " . CountOccurances(classname)
             if classname == "*" || CountOccurances(classname) > 0
                 :call add(updatedLines, substitute(line, '^\(\s\*\)','',''))
