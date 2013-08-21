@@ -71,7 +71,10 @@ function! GetFilePathListFromFiles(classToFind)
         let multiplePaths = split(paths, '\n')
         for p in multiplePaths
             let package = GetPackageFromFile(p)
-            :call add(filePathList, package . '.' . a:classToFind)
+            let fullPath =  package . '.' . a:classToFind
+            if (index(filePathList, fullPath) == -1)
+                :call add(filePathList,fullPath)
+            endif
         endfor
     endfor
     return filePathList
@@ -102,6 +105,9 @@ function! CreateImports(pathList)
         endif
         if len(a:pathList) > 1
             echom "Warning: Multiple imports created!"
+            for pa in a:pathList
+                echom pa
+            endfor
         endif
     endif
 endfunction
@@ -199,7 +205,7 @@ function! OrganizeImports()
                 if currentprefix == newprefix
                 else
                     let currentprefix = newprefix
-                    :execute "normal I \<CR>"
+                    :execute "normal I\<CR>"
                 endif
                 :execute "normal I" . line . "\<CR>" 
             endif
@@ -232,7 +238,7 @@ function! RemoveUnneededImports()
     endif
         
     for line in lines
-        let trimmedLine = substitute(line, '^\s*\(.\{-}\)\s*$', '\1', '')  
+        let trimmedLine = TrimString(line)  
         if len(trimmedLine) > 0
             " Also split on spaces for things like 
             " import com.MyClass as MyAwesomeClass
@@ -248,6 +254,10 @@ function! RemoveUnneededImports()
     for line in updatedLines 
         :execute "normal I" . line . "\<CR>" 
     endfor
+endfunction
+
+function! TrimString(str)
+    return substitute(a:str, '^\s*\(.\{-}\)\s*$', '\1', '')
 endfunction
 
 "Loading of imports from a file
