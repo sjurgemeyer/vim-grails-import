@@ -167,11 +167,17 @@ function! ConvertPathToPackage(filePath)
 endfunction
 
 function! GetPackageFromFile(filePath)
-    let packageDeclaration = readfile(a:filePath, 0, 1)[0]
+    let packageDeclaration = GetPackageLine(a:filePath)
     let package = split(packageDeclaration, '\s')[-1]
     let package = substitute(package, ';', '', '')
     return package
 
+endfunction
+
+function! GetPackageLine(filePath)
+    let fileLines = readfile(a:filePath, '', 20) " arbitrary limit on number of lines to read
+    let line = match(fileLines, "^package")
+    return fileLines[line]
 endfunction
 
 command! InsertImport :call InsertImport() 
