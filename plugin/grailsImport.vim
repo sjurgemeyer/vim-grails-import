@@ -84,6 +84,7 @@ function! CreateImports(pathList)
     if a:pathList == []
         echoerr "no file found"
     else
+        let packageLine = GetPackageLineNumber(expand("%:p"))
         for pa in a:pathList
             :let pos = getpos('.')
             let import = 'import ' . pa
@@ -93,7 +94,8 @@ function! CreateImports(pathList)
             else
                let formattedImport = import
             endif
-            :execute "normal ggo"
+
+            :execute "normal " . (packageLine + 1) . "Go"
             :execute "normal I" . formattedImport . "\<Esc>"
             :execute "normal " . (pos[1] + 1) . "G"
         endfor
@@ -178,6 +180,12 @@ function! GetPackageLine(filePath)
     let fileLines = readfile(a:filePath, '', 20) " arbitrary limit on number of lines to read
     let line = match(fileLines, "^package")
     return fileLines[line]
+endfunction
+
+function! GetPackageLineNumber(filePath)
+    let fileLines = readfile(a:filePath, '', 20) " arbitrary limit on number of lines to read
+    let line = match(fileLines, "^package")
+    return line
 endfunction
 
 command! InsertImport :call InsertImport() 
