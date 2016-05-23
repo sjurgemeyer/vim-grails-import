@@ -16,7 +16,7 @@ if !exists('g:grails_import_seperators')
     let g:grails_import_seperators = ['domain', 'services', 'groovy', 'java', 'taglib', 'controllers', 'integration', 'unit']
 endif
 
-if !exists('g:grails_import_auto_organize') 
+if !exists('g:grails_import_auto_organize')
     let g:grails_import_auto_organize = 1
 endif
 
@@ -38,7 +38,7 @@ function! InsertImport()
     let classToFind = expand("<cword>")
 
     let filePathList = GetFilePathListFromFiles(classToFind)
-    
+
     "Looking up class in text file
     if filePathList == []
        for line in s:loaded_data
@@ -54,7 +54,7 @@ function! InsertImport()
         let shouldCreateImport = ShouldCreateImport(f)
         if (shouldCreateImport)
             :call add(pathList, f)
-        else 
+        else
             return
         endif
     endfor
@@ -78,7 +78,7 @@ function! GetFilePathListFromFiles(classToFind)
         endfor
     endfor
     return filePathList
-endfunction 
+endfunction
 
 function! CreateImports(pathList)
     if a:pathList == []
@@ -90,7 +90,7 @@ function! CreateImports(pathList)
             let import = 'import ' . pa
             let extension = expand("%:e")
             if (extension == 'java')
-               let formattedImport = import . ';' 
+               let formattedImport = import . ';'
             else
                let formattedImport = import
             endif
@@ -103,7 +103,7 @@ function! CreateImports(pathList)
             :call RemoveUnneededImports()
         endif
         if (g:grails_import_auto_organize)
-            :call OrganizeImports() 
+            :call OrganizeImports()
         endif
         if len(a:pathList) > 1
             echom "Warning: Multiple imports created!"
@@ -117,7 +117,7 @@ endfunction
 function! ShouldCreateImport(path)
     let currentpackage = GetCurrentPackage()
     let importPackage = RemoveFileFromPackage(a:path)
-    if importPackage != '' 
+    if importPackage != ''
         if importPackage != currentpackage
             :let starredImport = search(importPackage . "\\.\\*", 'nw')
             if starredImport > 0
@@ -131,7 +131,7 @@ function! ShouldCreateImport(path)
                 else
                 endif
             endif
-        else 
+        else
             echom "File is in the same package"
             return 0
         endif
@@ -156,7 +156,7 @@ function! ConvertPathToPackage(filePath)
 
     let idx = len(splitPath)
     for sep in g:grails_import_seperators
-        let tempIdx = index(splitPath, sep) 
+        let tempIdx = index(splitPath, sep)
         if tempIdx > 0
             if tempIdx < idx
                 let idx = tempIdx + 1
@@ -188,15 +188,18 @@ function! GetPackageLineNumber(filePath)
     return line
 endfunction
 
-command! InsertImport :call InsertImport() 
+command! InsertImport :call InsertImport()
 map <D-i> :InsertImport <CR>
 
 function! OrganizeImports()
     :let pos = getpos('.')
 
     :let start = search("^import")
+    if start == 0
+        return
+    endif
     :let end = search("^import", 'b')
-    :let lines = getline(start, end)
+    :let lines = sort(getline(start, end))
 
     :execute "normal " . start . "G"
     if end == start
@@ -204,13 +207,13 @@ function! OrganizeImports()
     else
         :execute 'normal "_d' . (end-start) . "j"
     endif
-     
+
     :let currentprefix = ''
     :let currentline = ''
 
     for line in lines
         let pathList = split(line, '\.')
-        
+
         if len(pathList) > 1
             let newprefix = pathList[0]
             if currentline == line
@@ -221,7 +224,7 @@ function! OrganizeImports()
                     let currentprefix = newprefix
                     :execute "normal I\<CR>"
                 endif
-                :execute "normal I" . line . "\<CR>" 
+                :execute "normal I" . line . "\<CR>"
             endif
         endif
     endfor
@@ -230,10 +233,10 @@ endfunction
 command! OrganizeImports :call OrganizeImports()
 
 function! CountOccurances(searchstring)
-    let co = [] 
+    let co = []
     :execute "normal gg"
-	while search(a:searchstring, "W") > 0
-        :call add(co, 'a') 
+    while search(a:searchstring, "W") > 0
+        :call add(co, 'a')
     endwhile
     return len(co)
 endfunction
@@ -250,11 +253,11 @@ function! RemoveUnneededImports()
     else
         :execute 'normal "_d' . (end-start) . "j"
     endif
-        
+
     for line in lines
-        let trimmedLine = TrimString(line)  
+        let trimmedLine = TrimString(line)
         if len(trimmedLine) > 0
-            " Also split on spaces for things like 
+            " Also split on spaces for things like
             " import com.MyClass as MyAwesomeClass
             let tempString = substitute(line, '\s', '\.', 'g')
             let classname = substitute(split(tempString, '\.')[-1], ';', '', '')
@@ -265,8 +268,8 @@ function! RemoveUnneededImports()
         endif
     endfor
     :execute "normal " . start . "G0"
-    for line in updatedLines 
-        :execute "normal I" . line . "\<CR>" 
+    for line in updatedLines
+        :execute "normal I" . line . "\<CR>"
     endfor
 endfunction
 
@@ -281,7 +284,7 @@ function! LoadImports()
       for line in readfile(g:grails_import_list_file)
         if len(line) > 0
           if line[0] != '"'
-              :call add(s:loaded_data, line) 
+              :call add(s:loaded_data, line)
           endif
         endif
       endfor
