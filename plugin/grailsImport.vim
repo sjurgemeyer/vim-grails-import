@@ -194,6 +194,7 @@ map <D-i> :InsertImport <CR>
 function! OrganizeImports()
     :let pos = getpos('.')
 
+    :execute "normal gg"
     :let start = search("^import")
     if start == 0
         return
@@ -210,6 +211,7 @@ function! OrganizeImports()
 
     :let currentprefix = ''
     :let currentline = ''
+    :let firstline = ''
 
     for line in lines
         let pathList = split(line, '\.')
@@ -219,12 +221,19 @@ function! OrganizeImports()
             if currentline == line
             else
                 :let currentline = line
-                if currentprefix == newprefix
+                if currentline == ''
                 else
-                    let currentprefix = newprefix
-                    :execute "normal I\<CR>"
+                    if currentprefix == newprefix
+                    else
+                        let currentprefix = newprefix
+                        if firstline == ''
+                            let firstline = line
+                        else
+                            :execute "normal I\<CR>"
+                        endif
+                    endif
+                    :execute "normal I" . line . "\<CR>"
                 endif
-                :execute "normal I" . line . "\<CR>"
             endif
         endif
     endfor
@@ -242,9 +251,14 @@ function! CountOccurances(searchstring)
 endfunction
 
 function! RemoveUnneededImports()
+
+    :let pos = getpos('.')
+
+    :execute "normal gg"
+
     :let start = search("^import")
     :let end = search("^import", 'b')
-    :let lines = sort(getline(start, end))
+    :let lines = getline(start, end)
     :let updatedLines = []
 
     :execute "normal " . start . "G"
@@ -271,7 +285,10 @@ function! RemoveUnneededImports()
     for line in updatedLines
         :execute "normal I" . line . "\<CR>"
     endfor
+    call setpos('.', pos)
 endfunction
+
+command! RemoveUnneededImports :call RemoveUnneededImports()
 
 function! TrimString(str)
     return substitute(a:str, '^\s*\(.\{-}\)\s*$', '\1', '')
