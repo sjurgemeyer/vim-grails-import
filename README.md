@@ -1,6 +1,6 @@
 This is a plugin for vim that allows you to easily add imports within a groovy, grails or java project.
 
-## This project is deprecated in favor of.  See http://github.com/sjurgemeyer/vimport ##
+## This project has been moved to http://github.com/sjurgemeyer/vimport ##
 
 ## Installation ##
 
