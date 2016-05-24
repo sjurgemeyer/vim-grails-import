@@ -1,5 +1,7 @@
 This is a plugin for vim that allows you to easily add imports within a groovy, grails or java project.
 
+## This project is deprecated in favor of.  See http://github.com/sjurgemeyer/vimport ##
+
 ## Installation ##
 
 ### Vundle (http://github.com/gmarik/vundle) ###
@@ -8,7 +10,7 @@ Include the following line in your .vimrc
 
     Bundle 'sjurgemeyer/vim-grails-import'
 
-Then, run 
+Then, run
 
     :BundleInstall
 
