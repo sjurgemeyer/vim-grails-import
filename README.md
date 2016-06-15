@@ -4,15 +4,15 @@ This is a plugin for vim that allows you to easily add imports within a groovy, 
 
 ## Installation ##
 
-### Vundle (http://github.com/gmarik/vundle) ###
+### Vundle (https://github.com/VundleVim/Vundle.vim) ###
 
 Include the following line in your .vimrc
 
-    Bundle 'sjurgemeyer/vim-grails-import'
+    Plugin 'sjurgemeyer/vim-grails-import'
 
 Then, run
 
-    :BundleInstall
+    :PluginInstall
 
 
 ### Pathogen (https://github.com/tpope/vim-pathogen) ###
